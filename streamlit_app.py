@@ -15,13 +15,24 @@ daftar_makanan = {
 }
 
 # Fungsi kebutuhan gula
-def kebutuhan_gula(gender, aktivitas):
-    if aktivitas == "Tidak aktif":
-        return 25 if gender == "Perempuan" else 30
-    elif aktivitas == "Sedang":
-        return 35 if gender == "Perempuan" else 40
+def kebutuhan_gula_bb_tb(gender, usia, bb, tb, aktivitas):
+    # Rumus BMR Mifflin-St Jeor
+    if gender == "Laki-laki":
+        bmr = 10 * bb + 6.25 * tb - 5 * usia + 5
     else:
-        return 45 if gender == "Perempuan" else 50
+        bmr = 10 * bb + 6.25 * tb - 5 * usia - 161
+
+    # Faktor aktivitas
+    if aktivitas == "Tidak aktif":
+        faktor = 1.2
+    elif aktivitas == "Sedang":
+        faktor = 1.55
+    else:
+        faktor = 1.9
+
+    kebutuhan_kalori = bmr * faktor
+    batas_gula = (0.10 * kebutuhan_kalori) / 4  # 10% kalori / 4 kalori per gram gula
+    return round(batas_gula, 2)  # dibulatkan 2 angka desimal
 
 # Streamlit App
 st.set_page_config(page_title="Kebutuhan Gula Harian", page_icon="🍬")
@@ -33,11 +44,15 @@ st.header("1. Data Diri")
 col1, col2 = st.columns(2)
 with col1:
     gender = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
+    usia = st.number_input("Usia (tahun)", min_value=5, max_value=100, value=20)
 with col2:
-    aktivitas = st.selectbox("Aktivitas Harian", ["Tidak aktif", "Sedang", "Aktif"])
+    bb = st.number_input("Berat Badan (kg)", min_value=10.0, max_value=200.0, value=60.0)
+    tb = st.number_input("Tinggi Badan (cm)", min_value=80.0, max_value=250.0, value=165.0)
 
-batas_gula = kebutuhan_gula(gender, aktivitas)
-st.success(f"Batas maksimal gula harian kamu adalah **{batas_gula} gram**")
+aktivitas = st.selectbox("Aktivitas Harian", ["Tidak aktif", "Sedang", "Aktif"])
+
+batas_gula = kebutuhan_gula_bb_tb(gender, usia, bb, tb, aktivitas)
+st.success(f"Batas maksimal konsumsi gula harian kamu (10% dari kalori): **{batas_gula} gram**")
 
 # 2. Pilih makanan
 st.header("2. Makanan/Minuman yang Dikonsumsi")
