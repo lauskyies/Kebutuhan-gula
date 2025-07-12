@@ -60,11 +60,29 @@ else:
 
 # 4. Visualisasi Sederhana
 st.header("4. Visualisasi Gula Harian")
-gula_data = {
-    "Batas Maksimum": batas_gula,
-    "Konsumsi Kamu": total_gula
-}
-st.bar_chart(data=gula_data)
+
+# Progress bar
+st.subheader("🔄 Perbandingan Konsumsi vs Batas Maksimum")
+progress = total_gula / batas_gula if batas_gula != 0 else 0
+progress = min(progress, 1.0)  # Maks 100%
+st.progress(progress)
+
+# Emoji Reaksi
+st.subheader("🧠 Reaksi Tubuhmu:")
+if total_gula < batas_gula:
+    st.markdown("🟢 **Aman!** Tubuhmu happy 🍀")
+elif total_gula == batas_gula:
+    st.markdown("🟡 **Pas banget!** Tapi hati-hati ya")
+else:
+    st.markdown("🔴 **Waduh! Kelebihan konsumsi gula** 🚨")
+
+# Visualisasi Sendok Gula
+st.subheader("🥄 Total Sendok Gula")
+sendok = round(total_gula / 4)
+sendok_display = "🥄" * min(sendok, 25)  # batas 25 biar gak overflow
+
+st.markdown(f"Total gula kamu setara dengan **{sendok} sendok teh** gula.")
+st.markdown(sendok_display if sendok > 0 else "–")
 
 # 5. Edukasi
 st.header("5. Edukasi Singkat")
