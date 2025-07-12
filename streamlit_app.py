@@ -1,7 +1,6 @@
 import streamlit as st
-import matplotlib.pyplot as plt
 
-# Data makanan dan kandungan gula (gram)
+# Data makanan dan gula (gram)
 daftar_makanan = {
     "Teh Manis (250 mL)": 25,
     "Susu Kental Manis (50 g)": 20,
@@ -15,67 +14,71 @@ daftar_makanan = {
     "Saus Botolan (1 sdm)": 3
 }
 
-# Fungsi kebutuhan gula (WHO guidelines)
+# Fungsi kebutuhan gula
 def kebutuhan_gula(gender, aktivitas):
     if aktivitas == "Tidak aktif":
         return 25 if gender == "Perempuan" else 30
     elif aktivitas == "Sedang":
         return 35 if gender == "Perempuan" else 40
-    else:  # Aktif
+    else:
         return 45 if gender == "Perempuan" else 50
 
-# UI
-st.set_page_config(page_title="Kebutuhan Gula Harian", page_icon="🍭")
+# Streamlit App
+st.set_page_config(page_title="Kebutuhan Gula Harian", page_icon="🍬")
 st.title("🍬 Aplikasi Kebutuhan Gula Harian")
-st.caption("Pantau konsumsi gula kamu, yuk!")
+st.write("Pantau konsumsi gula kamu berdasarkan aktivitas dan makanan sehari-hari.")
 
-# User profile
+# 1. Profil
 st.header("1. Data Diri")
 col1, col2 = st.columns(2)
 with col1:
     gender = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
 with col2:
-    aktivitas = st.selectbox("Tingkat Aktivitas", ["Tidak aktif", "Sedang", "Aktif"])
+    aktivitas = st.selectbox("Aktivitas Harian", ["Tidak aktif", "Sedang", "Aktif"])
 
-# Perhitungan kebutuhan
 batas_gula = kebutuhan_gula(gender, aktivitas)
-st.success(f"Batas maksimal konsumsi gula harian kamu adalah **{batas_gula} gram**")
+st.success(f"Batas maksimal gula harian kamu adalah **{batas_gula} gram**")
 
-# Input konsumsi makanan
-st.header("2. Pilih Makanan/Minuman")
-selected = st.multiselect("Pilih makanan/minuman yang kamu konsumsi hari ini:", list(daftar_makanan.keys()))
-jumlah_gula = sum([daftar_makanan[x] for x in selected])
-st.write(f"🍭 **Total gula dari makanan/minuman terpilih: {jumlah_gula} gram**")
+# 2. Pilih makanan
+st.header("2. Makanan/Minuman yang Dikonsumsi")
+pilihan = st.multiselect("Pilih yang kamu konsumsi hari ini:", daftar_makanan.keys())
+total_gula = sum([daftar_makanan[x] for x in pilihan])
+st.info(f"🍭 Total gula dari pilihanmu: **{total_gula} gram**")
 
-# Perbandingan
-st.header("3. Status Konsumsi")
-if jumlah_gula < batas_gula:
-    st.success("✅ Asupan gula kamu masih dalam batas aman.")
-elif jumlah_gula == batas_gula:
-    st.warning("⚠️ Asupan gula kamu pas di batas maksimal.")
+# 3. Status Konsumsi
+st.header("3. Status Konsumsi Gula")
+status = ""
+if total_gula < batas_gula:
+    status = "✅ Aman"
+    st.success("Asupan gula kamu masih dalam batas aman.")
+elif total_gula == batas_gula:
+    status = "⚠️ Batas Maksimal"
+    st.warning("Asupan gula kamu tepat di batas maksimal.")
 else:
-    st.error("🚨 Kamu melebihi batas aman! Kurangi konsumsi gula.")
+    status = "🚨 Melebihi Batas"
+    st.error("Kamu melebihi batas aman! Kurangi konsumsi gula.")
 
-# Visualisasi
-st.header("4. Visualisasi Konsumsi Gula")
-fig, ax = plt.subplots()
-ax.bar(["Batas Maks", "Konsumsi Kamu"], [batas_gula, jumlah_gula], color=["green", "red"])
-ax.set_ylabel("Gram Gula")
-ax.set_ylim(0, max(batas_gula, jumlah_gula) + 20)
-st.pyplot(fig)
+# 4. Visualisasi Sederhana
+st.header("4. Visualisasi Gula Harian")
+gula_data = {
+    "Batas Maksimum": batas_gula,
+    "Konsumsi Kamu": total_gula
+}
+st.bar_chart(data=gula_data)
 
-# Edukasi
-st.header("5. Edukasi Singkat 🍽️")
-with st.expander("Kenapa penting membatasi gula?"):
-    st.write("""
-    - Konsumsi gula berlebih meningkatkan risiko **diabetes tipe 2**, **obesitas**, dan **kerusakan gigi**.
-    - WHO menyarankan maksimal 10% dari total kalori harian berasal dari gula (sekitar 50g).
-    - Gula tersembunyi banyak terdapat pada: minuman kemasan, saus, roti, dan sereal.
+# 5. Edukasi
+st.header("5. Edukasi Singkat")
+with st.expander("📘 Kenapa kita harus membatasi gula?"):
+    st.markdown("""
+    - Gula berlebih bisa memicu **obesitas, diabetes tipe 2, dan gangguan metabolik lainnya**.
+    - Banyak makanan olahan dan minuman mengandung gula tersembunyi.
+    - WHO menyarankan konsumsi gula harian maksimal 10% dari total kalori (sekitar 50g).
     """)
-with st.expander("Tips mengurangi konsumsi gula"):
-    st.write("""
-    - Ganti minuman manis dengan air putih atau infused water.
-    - Hindari menambahkan gula ke makanan/minuman.
-    - Baca label nutrisi sebelum beli produk kemasan.
+
+with st.expander("💡 Tips mengurangi konsumsi gula"):
+    st.markdown("""
+    - Minum air putih dibandingkan minuman manis.
+    - Hindari menambahkan gula ke teh/kopi.
+    - Baca label gizi sebelum membeli makanan/minuman kemasan.
     """)
 
