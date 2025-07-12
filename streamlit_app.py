@@ -1,44 +1,81 @@
 import streamlit as st
+import matplotlib.pyplot as plt
 
-# Fungsi menghitung batas maksimal gula harian (WHO standard)
-def kebutuhan_gula(gender, usia, aktivitas):
-    # Rekomendasi WHO: max 10% dari total kalori → ± 50g (200 kkal)
+# Data makanan dan kandungan gula (gram)
+daftar_makanan = {
+    "Teh Manis (250 mL)": 25,
+    "Susu Kental Manis (50 g)": 20,
+    "Roti Tawar (2 lembar)": 5,
+    "Sereal Manis (50 g)": 12,
+    "Minuman Soda (330 mL)": 35,
+    "Kue Basah (1 buah)": 8,
+    "Permen (1 buah)": 4,
+    "Es Krim (1 scoop)": 14,
+    "Cokelat Batang (30 g)": 18,
+    "Saus Botolan (1 sdm)": 3
+}
+
+# Fungsi kebutuhan gula (WHO guidelines)
+def kebutuhan_gula(gender, aktivitas):
     if aktivitas == "Tidak aktif":
-        return 25
+        return 25 if gender == "Perempuan" else 30
     elif aktivitas == "Sedang":
-        return 35
-    else:
-        return 50
+        return 35 if gender == "Perempuan" else 40
+    else:  # Aktif
+        return 45 if gender == "Perempuan" else 50
 
-st.title("🍭 Aplikasi Pemantau Kebutuhan Gula Harian")
+# UI
+st.set_page_config(page_title="Kebutuhan Gula Harian", page_icon="🍭")
+st.title("🍬 Aplikasi Kebutuhan Gula Harian")
+st.caption("Pantau konsumsi gula kamu, yuk!")
 
-st.write("Aplikasi ini membantu kamu mengetahui batas aman konsumsi gula harian berdasarkan profil dan aktivitasmu.")
+# User profile
+st.header("1. Data Diri")
+col1, col2 = st.columns(2)
+with col1:
+    gender = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
+with col2:
+    aktivitas = st.selectbox("Tingkat Aktivitas", ["Tidak aktif", "Sedang", "Aktif"])
 
-# Input pengguna
-gender = st.selectbox("Jenis Kelamin", ["Laki-laki", "Perempuan"])
-usia = st.slider("Usia", 5, 80, 25)
-aktivitas = st.selectbox("Tingkat Aktivitas", ["Tidak aktif", "Sedang", "Aktif"])
-asupan_gula = st.number_input("Total Asupan Gula Hari Ini (gram)", min_value=0)
+# Perhitungan kebutuhan
+batas_gula = kebutuhan_gula(gender, aktivitas)
+st.success(f"Batas maksimal konsumsi gula harian kamu adalah **{batas_gula} gram**")
 
-# Hitung kebutuhan
-batas_gula = kebutuhan_gula(gender, usia, aktivitas)
+# Input konsumsi makanan
+st.header("2. Pilih Makanan/Minuman")
+selected = st.multiselect("Pilih makanan/minuman yang kamu konsumsi hari ini:", list(daftar_makanan.keys()))
+jumlah_gula = sum([daftar_makanan[x] for x in selected])
+st.write(f"🍭 **Total gula dari makanan/minuman terpilih: {jumlah_gula} gram**")
 
-st.subheader("📊 Hasil Perhitungan")
-
-st.write(f"👉 Batas maksimal konsumsi gula harian kamu: **{batas_gula} gram**")
-
-if asupan_gula < batas_gula:
-    st.success("✅ Asupan gula kamu masih dalam batas aman!")
-elif asupan_gula == batas_gula:
-    st.warning("⚠️ Asupan gula kamu tepat di batas maksimal.")
+# Perbandingan
+st.header("3. Status Konsumsi")
+if jumlah_gula < batas_gula:
+    st.success("✅ Asupan gula kamu masih dalam batas aman.")
+elif jumlah_gula == batas_gula:
+    st.warning("⚠️ Asupan gula kamu pas di batas maksimal.")
 else:
-    st.error("🚨 Asupan gula kamu melebihi batas aman! Kurangi konsumsi gula.")
+    st.error("🚨 Kamu melebihi batas aman! Kurangi konsumsi gula.")
+
+# Visualisasi
+st.header("4. Visualisasi Konsumsi Gula")
+fig, ax = plt.subplots()
+ax.bar(["Batas Maks", "Konsumsi Kamu"], [batas_gula, jumlah_gula], color=["green", "red"])
+ax.set_ylabel("Gram Gula")
+ax.set_ylim(0, max(batas_gula, jumlah_gula) + 20)
+st.pyplot(fig)
 
 # Edukasi
-st.markdown("---")
-st.subheader("📚 Edukasi Singkat")
-st.write("""
-- WHO menyarankan konsumsi gula <10% dari total kalori harian (idealnya 5%).
-- Konsumsi gula berlebih dapat menyebabkan obesitas, diabetes tipe 2, dan kerusakan gigi.
-- Sumber gula tersembunyi: teh manis, roti, saus botolan, minuman kemasan.
-""")
+st.header("5. Edukasi Singkat 🍽️")
+with st.expander("Kenapa penting membatasi gula?"):
+    st.write("""
+    - Konsumsi gula berlebih meningkatkan risiko **diabetes tipe 2**, **obesitas**, dan **kerusakan gigi**.
+    - WHO menyarankan maksimal 10% dari total kalori harian berasal dari gula (sekitar 50g).
+    - Gula tersembunyi banyak terdapat pada: minuman kemasan, saus, roti, dan sereal.
+    """)
+with st.expander("Tips mengurangi konsumsi gula"):
+    st.write("""
+    - Ganti minuman manis dengan air putih atau infused water.
+    - Hindari menambahkan gula ke makanan/minuman.
+    - Baca label nutrisi sebelum beli produk kemasan.
+    """)
+
